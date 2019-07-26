@@ -4,6 +4,7 @@ import hudson.model.*
 import hudson.AbortException
 import hudson.console.HyperlinkNote
 import java.util.concurrent.CancellationException
+import jenkins.model.*
  
 // Retrieve parameters of the current build
 println "Get and print jenkins parameters"
