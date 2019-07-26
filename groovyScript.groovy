@@ -1,5 +1,10 @@
 #!/usr/bin/env groovy
 
 import hudson.model.*
-def foobar = System.getenv("listOfName")
-println foobar
+import hudson.AbortException
+import hudson.console.HyperlinkNote
+import java.util.concurrent.CancellationException
+ 
+// Retrieve parameters of the current build
+def listOfName = build.buildVariableResolver.resolve("listOfName")
+println "listOfName=$listOfName"
