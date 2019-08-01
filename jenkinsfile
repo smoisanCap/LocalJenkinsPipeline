@@ -1,0 +1,101 @@
+
+//Important variables
+def buildNumber = "${BUILD_NUMBER}"
+def numberOfApps = 0;
+def listOfAppsArray = [:]
+def listOfVersion = [:]
+def branch = "$releaseToBuild"
+def environment = "$environment"
+
+pipeline {
+    agent any
+    tools{
+        maven 'maven-3'
+    }
+    
+    stages {
+        
+        //Firt stage : used to get all files from the git and get all names selected by the user
+        stage('Initialisation') 
+        {
+            steps 
+            {
+                script
+                {
+                    def listOfAppsString = "$listOfApps"
+                    def appName = ''
+                                
+                    for(int i=0; i<listOfAppsString.size(); i++)
+                    {
+                        if(listOfAppsString[i] != ',')
+                        {
+                            appName += listOfAppsString[i]
+                        }
+                        else
+                        {
+                            listOfAppsArray[numberOfApps] = appName;
+                            numberOfApps++
+                            appName = ""
+                        }
+                    }
+                    listOfAppsArray[numberOfApps] = appName;
+                    numberOfApps++
+                    appName = ""
+                }
+                
+                git url: 'https://github.com/smoisanCap/LocalJenkinsPipeline.git'
+            }
+        }
+        
+        
+        //Second stage : used to build all the applications selected by the user and get informations (version) for the next stage
+        stage('Build')
+        {
+            steps
+            {
+                script
+                {
+                    for(int i = 0; i < numberOfApps; i++)
+                    {
+                        currentApp = listOfAppsArray[i]
+                        path = "C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}"
+                        dir(path) 
+                        {
+                            //Execute Build
+                            bat 'mvn package -Djgitver.skip=true'
+                            
+                            //Get the version number of the current application from his pom.xml file
+                            pom = readMavenPom file: 'pom.xml'
+                            listOfVersion[i] = pom.version
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage("Deployement")
+        {
+            steps
+            {
+                script
+                {
+                    for(int i = 0; i < numberOfApps;i++)
+                    {
+                        echo(listOfVersion[i])
+                    }
+                    /*
+                    for(int i = 0; i < numberOfApps; i++)
+                    {
+                        currentApp = listOfAppsArray[i]
+                        path = "C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}"
+                        dir(path) 
+                        {
+                            bat 'mvn package -Djgitver.skip=true'
+                            pom = readMavenPom file: 'pom.xml'
+                        }
+                    }*/
+                }
+            }
+        }
+    }
+}
