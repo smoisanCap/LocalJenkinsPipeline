@@ -1,38 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
+	<parent>
+        <groupId>com.mkyong.core.utils</groupId>
+        <artifactId>dateUtils-Parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+		<relativePath>../../../pom.xml</relativePath>
+    </parent>
+	
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.mkyong.core.utils</groupId>
-	<artifactId>dateUtils</artifactId>
+	<artifactId>dateUtils1-child</artifactId>
 	<packaging>jar</packaging>
 	<version>1.4.2</version>
-	<name>dateUtils</name>
+	<name>dateUtils1-child</name>
 	<url>http://maven.apache.org</url>
-
-	<properties>
-		<jdk.version>1.7</jdk.version>
-		<jodatime.version>2.5</jodatime.version>
-		<junit.version>4.11</junit.version>
-		<log4j.version>1.2.17</log4j.version>
-	</properties>
-
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-			<version>${jodatime.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-		</dependency>
-	</dependencies>
 
 	<build>
 		<finalName>dateutils</finalName>
