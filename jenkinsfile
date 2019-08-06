@@ -15,35 +15,59 @@ pipeline {
     
     stages {
         
-        //Firt stage : used to get all files from the git and get all names selected by the user
+        //Firt stage : used to get all files from the git and create variables from parameters
         stage('Initialisation') 
         {
             steps 
             {
+                git url: 'https://github.com/smoisanCap/LocalJenkinsPipeline.git'
+                
                 script
                 {
                     def listOfAppsString = "$listOfApps"
                     def appName = ''
-                                
-                    for(int i=0; i<listOfAppsString.size(); i++)
+                    
+                    if(listOfAppsString.size()>0)
                     {
-                        if(listOfAppsString[i] != ',')
+                        for(int i=0; i<listOfAppsString.size(); i++)
                         {
-                            appName += listOfAppsString[i]
+                            if(listOfAppsString[i] != ',')
+                            {
+                                appName += listOfAppsString[i]
+                            }
+                            else
+                            {
+                                listOfAppsArray[numberOfApps] = appName;
+                                numberOfApps++
+                                appName = ""
+                            }
                         }
-                        else
+                        listOfAppsArray[numberOfApps] = appName;
+                        appName = ""
+                        numberOfApps++
+                    }
+                    echo("Number of application selected : ${numberOfApps}")
+                    
+                    def date = new Date()
+                        
+                    for(int i = 0; i < numberOfApps;i++)
+                    {
+                        currentApp = listOfAppsArray[i]
+                        path = "C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}"
+                        dir(path) 
                         {
-                            listOfAppsArray[numberOfApps] = appName;
-                            numberOfApps++
-                            appName = ""
+                            //Get the version number of the current application from his pom.xml file
+                            pom = readMavenPom file: 'pom.xml'
+                            listOfVersion[i] = pom.version
+                            echo(listOfVersion[i])
+                            def applicationVersion = listOfVersion[i]
+                            def commitMessage = bat "git log -1"
+                            echo("${commitMessage}")
+                        
+                            bat "echo Date : ${date}    Commit message : ${commitMessage}     Application version : ${applicationVersion}    Branch : ${releaseToBuild}    Build number : ${buildNumber} >> additionnalInformations.txt"
                         }
                     }
-                    listOfAppsArray[numberOfApps] = appName;
-                    numberOfApps++
-                    appName = ""
                 }
-                
-                git url: 'https://github.com/smoisanCap/LocalJenkinsPipeline.git'
             }
         }
         
@@ -55,19 +79,22 @@ pipeline {
             {
                 script
                 {
-                    for(int i = 0; i < numberOfApps; i++)
+                    if(numberOfApps > 0)
                     {
-                        currentApp = listOfAppsArray[i]
-                        path = "C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}"
-                        dir(path) 
+                        for(int i = 0; i < numberOfApps; i++)
                         {
-                            //Execute Build
-                            bat 'mvn package -Djgitver.skip=true'
-                            
-                            //Get the version number of the current application from his pom.xml file
-                            pom = readMavenPom file: 'pom.xml'
-                            listOfVersion[i] = pom.version
+                            currentApp = listOfAppsArray[i]
+                            path = "C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}"
+                            dir(path) 
+                            {
+                                //Execute Build
+                                bat 'mvn package -Djgitver.skip=true'
+                            }
                         }
+                    }
+                    else
+                    {
+                        echo("WARNING : No applications have been selected !!!")
                     }
                 }
             }
@@ -79,23 +106,40 @@ pipeline {
             {
                 script
                 {
-                    for(int i = 0; i < numberOfApps;i++)
+                    if(numberOfApps > 0)
                     {
-                        echo(listOfVersion[i])
-                    }
-                    /*
-                    for(int i = 0; i < numberOfApps; i++)
-                    {
-                        currentApp = listOfAppsArray[i]
-                        path = "C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}"
-                        dir(path) 
+                        /*
+                        for(int i = 0; i < numberOfApps+1; i++)
                         {
-                            bat 'mvn package -Djgitver.skip=true'
-                            pom = readMavenPom file: 'pom.xml'
-                        }
-                    }*/
+                            
+                            
+                            currentApp = listOfAppsArray[i]
+                            path = "C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}"
+                            dir(path) 
+                            {
+                                bat 'mvn deploy -DskipTests -Djgitver.skip=true -U -DmuleDeploy -Denvironment=http://balmulesoftint01.eutelsat.fr:9999'
+                                pom = readMavenPom file: 'pom.xml'
+                            }
+                        }*/
+                    }
                 }
             }
         }
+        
+        stage("Undeploy previous versions")
+        {
+            steps
+            {
+                script
+                {
+                    echo("Http request test")
+                    /*
+                    def response = httpRequest contentType:'APPLICATION_JSON', url:'http://balmulesoftint01.eutelsat.fr:9999/mule/applications/esb-m4-business-bi-1.4.1', httpMode: 'DELETE' 
+                    println("Status: "+response.status)
+                    println("Content: "+response.content)
+                    */
+                }
+            }
+        }    
     }
 }
