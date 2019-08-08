@@ -94,7 +94,7 @@
 							<outputDirectory>target/</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}</directory>
+									<directory>ressources/</directory>
 									<filtering>false</filtering>
 								</resource>
 							</resources>              
