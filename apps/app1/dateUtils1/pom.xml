@@ -91,7 +91,7 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/</outputDirectory>
+							<outputDirectory>target/classes/</outputDirectory>
 							<resources>
 								<resource>
 									<directory>ressources/</directory>
