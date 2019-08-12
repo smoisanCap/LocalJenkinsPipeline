@@ -1,0 +1,3 @@
+[submodule "apps/app1/dateUtils1/LocalJenkinsPipeline"]
+	path = apps/app1/dateUtils1/LocalJenkinsPipeline
+	url = https://github.com/smoisanCap/LocalJenkinsPipeline
