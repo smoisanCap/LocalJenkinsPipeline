@@ -4,11 +4,12 @@ def buildNumber = "${BUILD_NUMBER}"
 def numberOfApps = 0;
 def listOfAppsArray = [:]
 def listOfVersion = [:]
-def branch = "$releaseToBuild"
-def environment = "$environment"
 
 pipeline {
     agent any
+    parameters {
+        gitParameter branchFilter: 'origin/(.*)', defaultValue: 'master', name: 'BRANCH', type: 'PT_BRANCH'
+    }
     tools{
         maven 'maven-3'
     }
@@ -20,10 +21,12 @@ pipeline {
         {
             steps 
             {
-                git url: 'https://github.com/smoisanCap/LocalJenkinsPipeline.git'
+                git branch:"${params.BRANCH}", url: 'https://github.com/smoisanCap/LocalJenkinsPipeline.git'
                 
                 script
                 {
+                    bat "git checkout ${commitId}"
+                    
                     def listOfAppsString = "$listOfApps"
                     def appName = ''
                     
@@ -49,22 +52,22 @@ pipeline {
                     echo("Number of application selected : ${numberOfApps}")
                     
                     def date = new Date()
+                    def applicationVersion
                         
                     for(int i = 0; i < numberOfApps;i++)
                     {
                         currentApp = listOfAppsArray[i]
-                        path = "C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}"
-                        dir(path) 
+                        dir("C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}") 
                         {
                             //Get the version number of the current application from his pom.xml file
                             pom = readMavenPom file: 'pom.xml'
                             listOfVersion[i] = pom.version
                             echo(listOfVersion[i])
-                            def applicationVersion = listOfVersion[i]
-                            def commitMessage = bat "git log -1"
-                            echo("${commitMessage}")
-                        
-                            bat "echo Date : ${date}    Commit message : ${commitMessage}     Application version : ${applicationVersion}    Branch : ${releaseToBuild}    Build number : ${buildNumber} >> additionnalInformations.txt"
+                            applicationVersion = listOfVersion[i]
+                        }
+                        dir("C:\\Program Files (x86)\\Jenkins\\workspace\\LocalJenkinsPipeline\\apps\\${currentApp}\\ressources") 
+                        {
+                            bat "echo Date : ${date}    Application version : ${applicationVersion}    Environment : ${environment}    Branch : ${params.BRANCH}    Build number : ${buildNumber} >> additionnalInformations.txt"
                         }
                     }
                 }
@@ -126,13 +129,13 @@ pipeline {
             }
         }
         
-        stage("Undeploy previous versions")
+        stage("Informations")
         {
             steps
             {
                 script
                 {
-                    echo("Http request test")
+                    def commitMessage = bat "git log -1"
                     /*
                     def response = httpRequest contentType:'APPLICATION_JSON', url:'http://balmulesoftint01.eutelsat.fr:9999/mule/applications/esb-m4-business-bi-1.4.1', httpMode: 'DELETE' 
                     println("Status: "+response.status)
