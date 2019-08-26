@@ -97,6 +97,10 @@
 									<directory>ressources/</directory>
 									<filtering>false</filtering>
 								</resource>
+								<resource>
+									<directory>historique/</directory>
+									<filtering>false</filtering>
+								</resource>
 							</resources>              
 						</configuration>            
 					</execution>
